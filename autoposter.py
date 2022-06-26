@@ -1,5 +1,6 @@
 ## how can i hide my ip address so craigslist doesn"t ban me?
-## need associated zip codes : https://github.com/coventry/cl-zip-codes
+## more-cl-zipcodes.txt is the originial file from https://github.com/coventry/cl-zip-codes
+
 
 ## .yml file
 ## pip install selenium
@@ -7,6 +8,7 @@
 ## pip install bs4
 ## pip install requests
 ## pip install pandas
+
 
 from selenium import webdriver
 # from selenium.webdriver.chrome.service import Service
@@ -60,27 +62,6 @@ def sub_reg_url():
 
 	return sub_geo_urls
 
-
-# test_url = 'https://northernwi.craigslist.org'
-
-# driver = webdriver.Chrome(ChromeDriverManager().install())
-# driver.get(test_url)
-# create_post = driver.find_element_by_link_text('create a posting')
-# # perform click
-# create_post.click()
-# time.sleep(5)
-
-# click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
-# time.sleep(5)
-
-# click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
-# time.sleep(5)
-
-# driver.quit()
-
-
-## more-cl-zipcodes.txt is the originial file from https://github.com/coventry/cl-zip-codes
-
 def zipcode_mods():
 	#open both files
 	with open('more-cl-zipcodes.txt','r') as original, open('working_zipcodes.txt','a') as copy:
@@ -96,7 +77,7 @@ def zipcode_mods():
 	
 	# this pulls the regional name of the substring of for the url
 	url_series = url_series.str.split(r"https://|.craigslist.org", expand=True)	
-	# and appends it to the url dataframe
+	# and append it to the url dataframe
 	df_urls['sub_region_name'] = url_series[1]
 	
 	# join the two dataframes together
@@ -106,10 +87,32 @@ def zipcode_mods():
 	df_url_zip['row_num'] = df_url_zip.sort_values(['zipcode'], ascending=False)\
 		.groupby(['sub_geo_url'])\
 		.cumcount() + 1
-    # kb - is this the best way to get the zipcodes?
+    # kb - are these the best zipcodes for the subregions?
 	df_url_zip_unique = df_url_zip[df_url_zip['row_num'] == 1]
-	
+	df_final = df_url_zip_unique[['sub_reg_url', 'zipcode']]
 	return df_url_zip_unique
+
+
+# def clickity_clicks():
+
+test_url = 'https://northernwi.craigslist.org'
+
+driver = webdriver.Chrome(ChromeDriverManager().install())
+driver.get(test_url)
+create_post = driver.find_element_by_link_text('create a posting')
+# perform click
+create_post.click()
+time.sleep(5)
+
+click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
+time.sleep(5)
+
+click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
+time.sleep(5)
+
+driver.quit()
+
+
 
 
 
