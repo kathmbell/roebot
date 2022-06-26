@@ -6,7 +6,7 @@
 ## pip install webdriver-manager
 ## pip install bs4
 ## pip install requests
-## pip install regex
+## pip install pandas
 
 from selenium import webdriver
 # from selenium.webdriver.chrome.service import Service
@@ -17,6 +17,8 @@ import time
 from bs4 import BeautifulSoup
 import requests
 import re 
+import os
+import pandas as pd
 
 # all states that ban abortions
 ## kb - figure out how to handle WY
@@ -31,8 +33,6 @@ def reg_url():
 		temp = url_prefix + s
 		geo_urls.append(temp)
 	return geo_urls
-
-
 
 class_list = []
 
@@ -60,31 +60,61 @@ def sub_reg_url():
 
 	return sub_geo_urls
 
-test_url = 'https://northernwi.craigslist.org'
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
-driver.get(test_url)
-create_post = driver.find_element_by_link_text('create a posting')
-# perform click
-create_post.click()
-time.sleep(5)
+# test_url = 'https://northernwi.craigslist.org'
 
-click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
-time.sleep(5)
+# driver = webdriver.Chrome(ChromeDriverManager().install())
+# driver.get(test_url)
+# create_post = driver.find_element_by_link_text('create a posting')
+# # perform click
+# create_post.click()
+# time.sleep(5)
 
-click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
-time.sleep(5)
+# click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
+# time.sleep(5)
 
-driver.quit()
+# click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
+# time.sleep(5)
+
+# driver.quit()
 
 
+## more-cl-zipcodes.txt is the originial file from https://github.com/coventry/cl-zip-codes
 
+def zipcode_mods():
+	#open both files
+	with open('more-cl-zipcodes.txt','r') as original, open('working_zipcodes.txt','a') as copy:
+	# read content from first file
+		for line in original:
+		# append content to second file
+			copy.write(line)
+	
+	df_zips = pd.read_csv("working_zipcodes.txt", header = None , sep=" ", names = ['sub_geo', 'zipcode'] )
 
+	df_urls = pd.DataFrame (sub_geo_urls, columns = ['sub_geo_url'])
+	url_series = pd.Series(df_urls['sub_geo_url'])
+	
+	# this pulls the regional name of the substring of for the url
+	url_series = url_series.str.split(r"https://|.craigslist.org", expand=True)	
+	# and appends it to the url dataframe
+	df_urls['sub_region_name'] = url_series[1]
+	
+	# join the two dataframes together
+
+	df_url_zip = pd.merge(left=df_urls, right=df_zips, how='left', left_on='sub_region_name', right_on='sub_geo')
+	
+	df_url_zip['row_num'] = df_url_zip.sort_values(['zipcode'], ascending=False)\
+		.groupby(['sub_geo_url'])\
+		.cumcount() + 1
+    # kb - is this the best way to get the zipcodes?
+	df_url_zip_unique = df_url_zip[df_url_zip['row_num'] == 1]
+	
+	return df_url_zip_unique
 
 
 
 reg_url()
 class_strings()
 sub_reg_url()
-
+zipcode_mods()
 
