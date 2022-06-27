@@ -1,6 +1,6 @@
 ## how can i hide my ip address so craigslist doesn"t ban me?
 ## more-cl-zipcodes.txt is the originial file from https://github.com/coventry/cl-zip-codes
-
+# selenium tutorial: https://towardsdatascience.com/using-python-and-selenium-to-automate-filling-forms-and-mouse-clicks-f87c74ed5c0f
 
 ## .yml file
 ## pip install selenium
@@ -90,12 +90,15 @@ def zipcode_mods():
     # kb - are these the best zipcodes for the subregions?
 	df_url_zip_unique = df_url_zip[df_url_zip['row_num'] == 1]
 	df_final = df_url_zip_unique[['sub_reg_url', 'zipcode']]
+	
 	return df_url_zip_unique
 
 
 # def clickity_clicks():
 
 test_url = 'https://northernwi.craigslist.org'
+
+from post_content import * # this brings in details of the post
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get(test_url)
@@ -109,6 +112,17 @@ time.sleep(5)
 
 click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
 time.sleep(5)
+
+# xpaths for post input fields
+posting_title_input = '//*[@id="PostingTitle"]'
+postal_code_input = '//*[@id="postal_code"]'
+description_input = '//*[@id="PostingBody"]'
+
+# free use free email address 
+email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
+
+# select privacy radio button
+click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='A']").click()
 
 driver.quit()
 
