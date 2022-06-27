@@ -2,23 +2,16 @@
 ## more-cl-zipcodes.txt is the originial file from https://github.com/coventry/cl-zip-codes
 # selenium tutorial: https://towardsdatascience.com/using-python-and-selenium-to-automate-filling-forms-and-mouse-clicks-f87c74ed5c0f
 
-## .yml file
-## pip install selenium
-## pip install webdriver-manager
-## pip install bs4
-## pip install requests
-## pip install pandas
-
 
 from selenium import webdriver
 # from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-# from selenium.webdriver.common.by import By
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 from bs4 import BeautifulSoup
 import requests
-import re 
+# import re 
 import os
 import pandas as pd
 
@@ -98,32 +91,51 @@ def zipcode_mods():
 
 test_url = 'https://northernwi.craigslist.org'
 
-from post_content import * # this brings in details of the post
+# this brings in details of the post
+import post_content 
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
+			# driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get(test_url)
-create_post = driver.find_element_by_link_text('create a posting')
-# perform click
-create_post.click()
-time.sleep(5)
 
-click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
-time.sleep(5)
+driver.find_element(By.LINK_TEXT,'create a posting').click()
+			# create_post = driver.find_element_by_link_text('create a posting')
+			# # perform click
+			# create_post.click()
+time.sleep(20)
 
-click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
-time.sleep(5)
+driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='c']").click()
+			# click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
+time.sleep(7)
+
+driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='3']").click()
+			# click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
+time.sleep(8)
 
 # xpaths for post input fields
 posting_title_input = '//*[@id="PostingTitle"]'
 postal_code_input = '//*[@id="postal_code"]'
-description_input = '//*[@id="PostingBody"]'
+post_body_input = '//*[@id="PostingBody"]'
 
 # free use free email address 
 email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
 
 # select privacy radio button
-click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='A']").click()
+driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='A']").click()
+			# driver.find_element_by_css_selector("input[type='radio'][value='A']").click()
+time.sleep(15)
 
+driver.find_element(By.XPATH,posting_title_input).send_keys(post_content.post_title)
+			# driver.find_element_by_xpath(posting_title_input).send_keys(post_content.post_title)
+time.sleep(20)
+
+driver.find_element(By.XPATH,post_body_input).send_keys(post_content.post_description)
+			# driver.find_element_by_xpath(post_body_input).send_keys(post_content.post_description)
+time.sleep(60)
+
+			# driver.find_element_by_xpath(login_submit).click()
+
+time.sleep(20)
 driver.quit()
 
 
