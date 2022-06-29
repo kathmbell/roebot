@@ -11,7 +11,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 from bs4 import BeautifulSoup
 import requests
-# import re 
+import re 
 import os
 import pandas as pd
 
@@ -55,6 +55,8 @@ def sub_reg_url():
 
 	return sub_geo_urls
 
+df_url_zip_cl_location = {}
+
 def zipcode_mods():
 	#open both files
 	with open('more-cl-zipcodes.txt','r') as original, open('working_zipcodes.txt','a') as copy:
@@ -62,82 +64,86 @@ def zipcode_mods():
 		for line in original:
 		# append content to second file
 			copy.write(line)
-	
+
 	df_zips = pd.read_csv("working_zipcodes.txt", header = None , sep=" ", names = ['sub_geo', 'zipcode'] )
 
 	df_urls = pd.DataFrame (sub_geo_urls, columns = ['sub_geo_url'])
+
 	url_series = pd.Series(df_urls['sub_geo_url'])
-	
+
 	# this pulls the regional name of the substring of for the url
 	url_series = url_series.str.split(r"https://|.craigslist.org", expand=True)	
+
 	# and append it to the url dataframe
 	df_urls['sub_region_name'] = url_series[1]
-	
+
 	# join the two dataframes together
 
 	df_url_zip = pd.merge(left=df_urls, right=df_zips, how='left', left_on='sub_region_name', right_on='sub_geo')
-	
+
 	df_url_zip['row_num'] = df_url_zip.sort_values(['zipcode'], ascending=False)\
 		.groupby(['sub_geo_url'])\
 		.cumcount() + 1
-    # kb - are these the best zipcodes for the subregions?
+	# kb - are these the best zipcodes for the subregions?
 	df_url_zip_unique = df_url_zip[df_url_zip['row_num'] == 1]
-	df_final = df_url_zip_unique[['sub_reg_url', 'zipcode']]
-	
-	return df_url_zip_unique
+	df_url_zip_cl_location_l = df_url_zip_unique[['sub_geo_url', 'zipcode']]
+
+	df_url_zip_cl_location_l = df_url_zip_cl_location_l.set_index('sub_geo_url').T.to_dict('list')
+	df_url_zip_cl_location.update(df_url_zip_cl_location_l)
 
 
-# def clickity_clicks():
+	return df_url_zip_cl_location
 
-test_url = 'https://northernwi.craigslist.org'
 
 # this brings in details of the post
 import post_content 
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
-			# driver = webdriver.Chrome(ChromeDriverManager().install())
-driver.get(test_url)
+def clickity_clicks():
 
-driver.find_element(By.LINK_TEXT,'create a posting').click()
-			# create_post = driver.find_element_by_link_text('create a posting')
-			# # perform click
-			# create_post.click()
-time.sleep(20)
+	driver = webdriver.Chrome(ChromeDriverManager().install())
 
-driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='c']").click()
-			# click_community = driver.find_element_by_css_selector("input[type='radio'][value='c']").click()
-time.sleep(7)
+	for web_address in df_url_zip_cl_location:
+		# print("town name: "+ str(web_address) + " and zip is: " + str(df_url_zip_cl_location[web_address])[1:-1])
 
-driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='3']").click()
-			# click_general_community = driver.find_element_by_css_selector("input[type='radio'][value='3']").click()
-time.sleep(8)
+		driver.get(srt(web_address))
 
-# xpaths for post input fields
-posting_title_input = '//*[@id="PostingTitle"]'
-postal_code_input = '//*[@id="postal_code"]'
-post_body_input = '//*[@id="PostingBody"]'
+		driver.find_element(By.LINK_TEXT,'create a posting').click()
+		time.sleep(20)
 
-# free use free email address 
-email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
+		driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='c']").click()
+		time.sleep(7)
 
-# select privacy radio button
-driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='A']").click()
-			# driver.find_element_by_css_selector("input[type='radio'][value='A']").click()
-time.sleep(15)
+		driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='3']").click()
+		time.sleep(8)
 
-driver.find_element(By.XPATH,posting_title_input).send_keys(post_content.post_title)
-			# driver.find_element_by_xpath(posting_title_input).send_keys(post_content.post_title)
-time.sleep(20)
+		# xpaths for post input fields
+		posting_title_input = '//*[@id="PostingTitle"]'
+		postal_code_input = '//*[@id="postal_code"]'
+		post_body_input = '//*[@id="PostingBody"]'
 
-driver.find_element(By.XPATH,post_body_input).send_keys(post_content.post_description)
-			# driver.find_element_by_xpath(post_body_input).send_keys(post_content.post_description)
-time.sleep(60)
+		# free use free email address 
+		email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
 
-			# driver.find_element_by_xpath(login_submit).click()
+		# select privacy radio button
+		driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='A']").click()
+		time.sleep(15)
 
-time.sleep(20)
-driver.quit()
+		# post title field
+		driver.find_element(By.XPATH,posting_title_input).send_keys(post_content.post_title)
+		time.sleep(20)
 
+		# zipcode field
+		driver.find_element(By.XPATH,postal_code_input).send_keys(str(df_url_zip_cl_location[web_address])[1:-1])
+		time.sleep(20)
+
+		# post description field
+		driver.find_element(By.XPATH,post_body_input).send_keys(post_content.post_description)
+		time.sleep(60)
+
+					# driver.find_element_by_xpath(login_submit).click()
+
+		time.sleep(20)
+		driver.quit()
 
 
 
@@ -146,4 +152,7 @@ reg_url()
 class_strings()
 sub_reg_url()
 zipcode_mods()
+clickity_clicks()
+
+
 
