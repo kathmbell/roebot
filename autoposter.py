@@ -120,8 +120,6 @@ def clickity_clicks():
 		posting_title_input = '//*[@id="PostingTitle"]'
 		postal_code_input = '//*[@id="postal_code"]'
 		post_body_input = '//*[@id="PostingBody"]'
-
-		# free use free email address 
 		email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
 
 		# select privacy radio button
