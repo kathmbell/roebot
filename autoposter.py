@@ -14,6 +14,8 @@ import requests
 import re 
 import os
 import pandas as pd
+import post_content 
+import secret_file
 
 # all states that ban abortions
 ## kb - figure out how to handle WY
@@ -95,9 +97,6 @@ def zipcode_mods():
 	return df_url_zip_cl_location
 
 
-# this brings in details of the post
-import post_content 
-
 def clickity_clicks():
 
 	driver = webdriver.Chrome(ChromeDriverManager().install())
@@ -105,7 +104,7 @@ def clickity_clicks():
 	for web_address in df_url_zip_cl_location:
 		# print("town name: "+ str(web_address) + " and zip is: " + str(df_url_zip_cl_location[web_address])[1:-1])
 
-		driver.get(srt(web_address))
+		driver.get(str(web_address))
 
 		driver.find_element(By.LINK_TEXT,'create a posting').click()
 		time.sleep(20)
@@ -121,6 +120,10 @@ def clickity_clicks():
 		postal_code_input = '//*[@id="postal_code"]'
 		post_body_input = '//*[@id="PostingBody"]'
 		email_input = '//*[@id="new-edit"]/div/fieldset[1]/div/div/div[1]/label/label/input'
+		post_continue = '//*[@id="new-edit"]/div/div[3]/div/button'
+		post_cross_street = '//*[@id="leafletForm"]/button'
+		images_button = '/html/body/article/section/form/button'
+		publish_button = '//*[@id="publish_bottom"]/button'
 
 		# select privacy radio button
 		driver.find_element(By.CSS_SELECTOR, "input[type='radio'][value='A']").click()
@@ -138,12 +141,44 @@ def clickity_clicks():
 		driver.find_element(By.XPATH,post_body_input).send_keys(post_content.post_description)
 		time.sleep(60)
 
-					# driver.find_element_by_xpath(login_submit).click()
+		# contact email
+		driver.find_element(By.XPATH,email_input).send_keys(secret_file.email)
+		time.sleep(60)
+
+		driver.find_element_by_xpath(post_continue).click()
 
 		time.sleep(20)
+
+		driver.find_element_by_xpath(post_cross_street).click() 
+		time.sleep(20)
+
+		driver.find_element_by_xpath(images_button).click() 
+		time.sleep(20)
+
+		driver.find_element_by_xpath(publish_button).click() 
+		time.sleep(20)
+
+		check_email()
+
 		driver.quit()
 
 
+		return
+
+
+def check_email():
+	#x_path for checking email
+	
+	web_address = "mail.proton.me"
+	
+	driver = webdriver.Chrome(ChromeDriverManager().install())
+	driver.get(str(web_address))
+	
+	#open most recent email
+	most_recent_email = '/html/body/div[1]/div[3]/div/div[2]/div/div[2]/div/main/div/div[1]/div/div[2]/div'
+
+	driver.find_element_by_xpath(most_recent_email).click() 
+		time.sleep(20)
 
 
 reg_url()
