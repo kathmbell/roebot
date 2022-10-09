@@ -101,6 +101,8 @@ def clickity_clicks():
 
 	driver = webdriver.Chrome(ChromeDriverManager().install())
 
+## I think this loop needs to be outside of this function
+
 	for web_address in df_url_zip_cl_location:
 		# print("town name: "+ str(web_address) + " and zip is: " + str(df_url_zip_cl_location[web_address])[1:-1])
 
@@ -179,13 +181,13 @@ def check_email():
 
 	driver.find_element_by_xpath(most_recent_email).click() 
 		time.sleep(20)
+	return 
 
-
-reg_url()
-class_strings()
-sub_reg_url()
-zipcode_mods()
-clickity_clicks()
+# reg_url()
+# class_strings()
+# sub_reg_url()
+# zipcode_mods()
+# clickity_clicks()
 
 
 
